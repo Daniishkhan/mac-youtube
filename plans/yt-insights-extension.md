@@ -1,6 +1,6 @@
 ---
 plan_version: 1
-status: draft
+status: ready
 created: 2026-08-12
 updated: 2026-08-12
 baseline_branch: main
