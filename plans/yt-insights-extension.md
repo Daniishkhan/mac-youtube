@@ -34,7 +34,7 @@ A pi extension that accepts a YouTube URL and produces structured **key ideas an
 - R7: Transcript treated as untrusted data in prompts (delimited, explicit "do not follow instructions in it").
 - R8: Long-video handling: single call when transcript fits comfortably; token-threshold map/reduce (klokie-style, timestamp-preserving chunks) above it.
 - R9: Usage accounting: nested call `usage` returned from tool/command so cost shows in session totals.
-- R10: Markdown artifact written to a configurable output directory so results survive the session and can be re-read without refetching.
+- R10: Markdown artifact written to the Obsidian vault as a Source note (see Decisions), so results survive the session and join the learning system.
 - R11: Tests (`node --test`) for pure logic: URL parsing, transcript normalization/dedup, chunking, timestamp/quote validation, schema validation.
 
 ## Non-goals
@@ -53,11 +53,14 @@ A pi extension that accepts a YouTube URL and produces structured **key ideas an
 - **Invocation surfaces**: both command (`/yt`) and tool (`yt_insights`) — standard pi pattern; no auto-detection.
 - **Transcript lib**: `youtubei.js` (actively maintained, v17.2.0 2026-06-24; pure npm). `youtube-transcript` as documented fallback tier only if integration proves simple.
 - **No new system dependencies**: no yt-dlp, no ffmpeg for v1.
+- **LLM path (user decision)**: transcript → single structured nested call on a pinned chat model; **no Gemini-native video mode in v1** (would need direct REST + new API key; pi-ai verified to lack video content parts). Uncaptioned videos get a clear actionable error.
+- **Default model pin**: `google-vertex/gemini-3.6-flash` (already in `enabledModels`, flash-class, 1M context handles multi-hour transcripts single-call); overridable via `~/.pi/agent/yt-insights.json` `{provider, model, thinking, outputDir}`; `/yt model ...` subcommand mirrors `/polish model`.
+- **Output destination (user decision)**: Obsidian vault Source notes at `~/Documents/notes/Sources/<Video Title>.md` (dir created if missing), overridable via config `outputDir`. Format follows the learning system's obsidian skill exactly — frontmatter `type: source`, `kind: video`, `status: read`, `url`, `created` (+ `channel`, `video_id`, `duration` as extra fields) — so video notes interoperate with `/learn-review` and wikilink backlog. Body: `# title`, `## TL;DR`, `## Key ideas` (idea + explanation + why-it-matters + timestamped evidence links of form `https://youtu.be/<id>?t=<s>`), `## Chapters`, `## Quotes`, `## Terms`, `## Caveats`, `## Related` with `[[wikilinks]]`. Existing note for the same video id → merge/overwrite prompt-free choice: overwrite with fresh content (deterministic regeneration), never duplicate.
 - **Structured output**: request strict JSON; validate in code and retry once with a repair prompt on parse/validation failure (rather than relying solely on provider schema enforcement, which is unverified for Gemini).
 - **Prompt architecture**: single system prompt, transcript delimited as untrusted data; ideas/insights vocabulary borrowed from Fabric; claim+why-it-matters card shape from video-lens.
 - **Map/reduce trigger**: conservative token threshold (measure with the model's tokenizer if cheap, else ~4 chars/token estimate); chunks split on segment boundaries, each chunk retains segment timestamps.
 
-<!-- PENDING USER DECISIONS: default model choice; output directory location/format. To be filled by planning dialogue. -->
+<!-- All user-owned decisions settled: location, LLM path, default model, output destination. -->
 
 Any detail this plan does not settle is delegated to conservative, repository-consistent executor defaults, recorded in the execution report.
 
@@ -129,8 +132,7 @@ All new files in this repo (see Proposed changes). External mutation: one symlin
 
 ## Open questions
 
-- Default model pin (recommendation forming: `google-vertex/gemini-3.6-flash` — already enabled, flash-class, cheap, 1M context).
-- Output directory default (options: `~/Desktop/projects/mac-youtube/out/`, Obsidian vault `Sources/`, `~/.pi/agent/yt-insights/`).
+None.
 
 ## Execution handoff
 
