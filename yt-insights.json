@@ -1,0 +1,5 @@
+{
+  "provider": "google-vertex",
+  "model": "gemini-3.6-flash",
+  "outputDir": "/Users/danish/Documents/notes/Sources"
+}
